@@ -4,9 +4,11 @@ async def filter_think_tags(async_generator):
     """
     State-machine generator that filters out `<think>...</think>` tags and their content.
     Robustly handles chunks split anywhere (e.g. `<th`, `ink>`).
+    Strips leading whitespace (like newlines left after </think>) to prevent blank spaces.
     """
     in_think = False
     buffer = ""
+    first_yield_done = False
     
     async for chunk in async_generator:
         buffer += chunk
@@ -17,7 +19,12 @@ async def filter_think_tags(async_generator):
                 if think_idx != -1:
                     # Found a complete <think> start tag
                     if think_idx > 0:
-                        yield buffer[:think_idx]
+                        yield_str = buffer[:think_idx]
+                        if not first_yield_done:
+                            yield_str = yield_str.lstrip()
+                        if yield_str:
+                            first_yield_done = True
+                            yield yield_str
                     in_think = True
                     buffer = buffer[think_idx + 7:]
                     continue
@@ -25,14 +32,24 @@ async def filter_think_tags(async_generator):
                 # Check for partial tags at the end of the buffer
                 last_lt = buffer.rfind("<")
                 if last_lt != -1 and "<think>".startswith(buffer[last_lt:]):
-                    # Could be the start of `<think>`. Yield everything before it, keep the rest in buffer.
                     if last_lt > 0:
-                        yield buffer[:last_lt]
+                        yield_str = buffer[:last_lt]
+                        if not first_yield_done:
+                            yield_str = yield_str.lstrip()
+                        if yield_str:
+                            first_yield_done = True
+                            yield yield_str
                     buffer = buffer[last_lt:]
                     break # wait for more chunks
                 else:
-                    # Safe to yield the whole buffer
-                    yield buffer
+                    yield_str = buffer
+                    if not first_yield_done:
+                        stripped = yield_str.lstrip()
+                        if stripped:
+                            first_yield_done = True
+                            yield stripped
+                    else:
+                        yield yield_str
                     buffer = ""
             
             else: # in_think == True
@@ -45,13 +62,16 @@ async def filter_think_tags(async_generator):
                 # Check for partial end tags at the end of the buffer
                 last_lt = buffer.rfind("<")
                 if last_lt != -1 and "</think>".startswith(buffer[last_lt:]):
-                    # Could be the start of `</think>`. Keep it in buffer, discard everything before it.
                     buffer = buffer[last_lt:]
                     break # wait for more chunks
                 else:
-                    # Safely discard the entire reasoning chunk
                     buffer = ""
                     
     # Flush remaining buffer at the end of the stream
     if buffer and not in_think:
-        yield buffer
+        if not first_yield_done:
+            stripped = buffer.lstrip()
+            if stripped:
+                yield stripped
+        else:
+            yield buffer
