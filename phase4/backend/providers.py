@@ -155,7 +155,7 @@ async def gemini_vision_extract(api_key: str, image_bytes: bytes, mime_type: str
     used only as a fallback when Tesseract OCR produces too little text."""
     import base64
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={api_key}"
     payload = {
         "contents": [{
             "role": "user",
@@ -187,7 +187,7 @@ PROVIDER_ADAPTERS = {
 DEFAULT_MODELS = {
     "groq": "qwen/qwen3.6-27b",
     "openrouter": "meta-llama/llama-3.3-70b-instruct:free",
-    "gemini": "gemini-2.0-flash",
+    "gemini": "gemini-3.6-flash",
 }
 
 # Where a user goes to create a free key for each provider — used to build
