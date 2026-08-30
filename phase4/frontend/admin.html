@@ -1018,10 +1018,10 @@ a:hover{text-decoration:underline;}
 <div id="toast"></div>
 
 <script>
-const B = window.BACKEND_URL || 'http://localhost:8000';
+const B = window.location.origin;
 const PROV_DEFAULTS = {
   groq:       {model:'qwen/qwen3.6-27b',rpm:30,rpd:1000},
-  gemini:     {model:'gemini-2.0-flash',rpm:15,rpd:1500},
+  gemini:     {model:'gemini-3.6-flash',rpm:15,rpd:1500},
   openrouter: {model:'meta-llama/llama-3.3-70b-instruct:free',rpm:20,rpd:500},
 };
 const PROV_ICONS = {groq:'🟠',gemini:'🔵',openrouter:'🟣'};
