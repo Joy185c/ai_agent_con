@@ -1,3 +1,4 @@
+/static/*               /:splat             200
 /                       /landing.html       200
 /app                    /app.html           200
 /joyadmincontinuum@261  /admin.html         200
