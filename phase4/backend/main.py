@@ -351,9 +351,12 @@ async def stream_chat_response(user_id: int, conversation_id: int, user_message:
     full_text = ""
     try:
         candidates = user_keys if using_own_key else None
-        async for chunk in key_pool.call_llm_with_fallback(plain_messages, category=category, candidates=candidates):
-            full_text += chunk
-            yield f"data: {json.dumps({'token': chunk})}\n\n"
+        async for item in key_pool.call_llm_with_fallback(plain_messages, category=category, candidates=candidates):
+            if isinstance(item, dict) and item.get("type") == "system_msg":
+                yield f"data: {json.dumps({'system_message': item['message']})}\n\n"
+            else:
+                full_text += item
+                yield f"data: {json.dumps({'token': item})}\n\n"
     except key_pool.NoAvailableKeyError as exc:
         try:
             db.increment_request_stat(None, category, "error")

@@ -188,10 +188,18 @@ async def call_llm_with_fallback(messages: list, category: str = "text", max_att
     single user's own BYOK keys) instead of the shared admin pool.
     """
     tried_ids: set = set()
+    last_tried_provider = None
 
-    for _ in range(max_attempts):
+    for attempt in range(max_attempts):
         key_record = await select_best_key(category=category, exclude_ids=tried_ids, candidates=candidates)
         tried_ids.add(key_record["id"])
+        
+        # If this is a fallback attempt, yield an event about the switch
+        if attempt > 0 and last_tried_provider and last_tried_provider != key_record["provider"]:
+            yield {"type": "system_msg", "message": f"Switched to {key_record['provider'].capitalize()} due to {last_tried_provider.capitalize()} error/rate-limit"}
+            
+        last_tried_provider = key_record["provider"]
+        
         stream_chat, _ = providers.get_adapter(key_record["provider"])
 
         try:
