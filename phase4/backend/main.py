@@ -36,6 +36,7 @@ import auth
 import db
 import extraction
 import key_pool
+import prompts
 import providers
 import rag
 
@@ -314,6 +315,10 @@ async def stream_chat_response(user_id: int, conversation_id: int, user_message:
                 "If the answer isn't in the context, say so rather than guessing.\n\n"
                 f"Context:\n{context_block}\n\nQuestion: {user_message}"
             )
+    
+    # Prepend the global system prompt to dictate AI behavior
+    plain_messages.insert(0, {"role": "system", "content": prompts.SYSTEM_PROMPT})
+    
     plain_messages.append({"role": "user", "content": effective_message})
 
     user_keys = db.active_user_keys_as_candidates(user_id, category)

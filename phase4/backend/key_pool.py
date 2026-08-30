@@ -20,6 +20,7 @@ from typing import Optional
 
 import db
 import providers
+import stream_filter
 
 REDIS_URL = os.environ.get("REDIS_URL", "")
 
@@ -195,9 +196,13 @@ async def call_llm_with_fallback(messages: list, category: str = "text", max_att
 
         try:
             got_any_output = False
-            async for chunk in stream_chat(key_record["api_key"], key_record["model"], messages):
+            filtered_stream = stream_filter.filter_think_tags(
+                stream_chat(key_record["api_key"], key_record["model"], messages)
+            )
+            async for chunk in filtered_stream:
                 got_any_output = True
-                yield chunk
+                if chunk:
+                    yield chunk
             if got_any_output:
                 await record_success(key_record, category)
                 return

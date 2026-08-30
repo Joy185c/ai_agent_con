@@ -88,9 +88,11 @@ async def extract_text(filename: str, data: bytes, vision_fallback_fn=None) -> d
             vision_text = await vision_fallback_fn(data)
             if vision_text:
                 return {"text": vision_text, "method": "vision_fallback", "needs_review": True}
-        except Exception:
-            pass
+        except Exception as e:
+            print("Vision fallback failed:", repr(e))
 
     # Nothing worked — return whatever OCR produced (possibly empty) so the
     # user can still see/edit it rather than getting a hard failure.
+    if not text:
+        text = "⚠️ [System: Tesseract OCR is not installed on this server, and no Gemini API key is available to process this image. Please add a Gemini key in the Admin Panel or install Tesseract OCR.]"
     return {"text": text, "method": "ocr", "needs_review": True}
