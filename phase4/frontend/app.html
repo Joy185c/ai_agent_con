@@ -665,6 +665,11 @@
     const password = authPasswordInput.value;
     authError.textContent = "";
     if (!email || !password) { authError.textContent = "Please fill in both fields."; return; }
+    
+    // Add loading state
+    const originalText = authSubmit.textContent;
+    authSubmit.textContent = "Please wait (Waking server)...";
+    authSubmit.disabled = true;
 
     try {
       const res = await fetch(`${BACKEND_URL}/auth/${authMode}`, {
@@ -681,6 +686,9 @@
       showApp();
     } catch (err) {
       authError.textContent = err.message;
+    } finally {
+      authSubmit.textContent = originalText;
+      authSubmit.disabled = false;
     }
   });
 
