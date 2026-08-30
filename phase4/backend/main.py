@@ -73,7 +73,7 @@ async def serve_index():
     return HTMLResponse("<h3>Frontend not found</h3>", status_code=404)
 
 
-@app.get("/admin", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/joyadmincontinuum@261", response_class=HTMLResponse, include_in_schema=False)
 async def serve_admin():
     path = os.path.join(_FRONTEND, "admin.html")
     if os.path.exists(path):
