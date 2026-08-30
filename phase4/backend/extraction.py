@@ -64,19 +64,23 @@ async def extract_text(filename: str, data: bytes, vision_fallback_fn=None) -> d
     key pool directly.
     """
     is_pdf = filename.lower().endswith(".pdf")
+    text = ""
 
-    if is_pdf:
-        text = extract_from_pdf_bytes(data)
-        if len(text) >= MIN_OCR_CHARS:
-            return {"text": text, "method": "pdf_text", "needs_review": False}
-        # Looked like a scanned PDF — try OCR on it
-        text = ocr_pdf_bytes(data)
-        if len(text) >= MIN_OCR_CHARS:
-            return {"text": text, "method": "ocr", "needs_review": True}
-    else:
-        text = ocr_image_bytes(data)
-        if len(text) >= MIN_OCR_CHARS:
-            return {"text": text, "method": "ocr", "needs_review": True}
+    try:
+        if is_pdf:
+            text = extract_from_pdf_bytes(data)
+            if len(text) >= MIN_OCR_CHARS:
+                return {"text": text, "method": "pdf_text", "needs_review": False}
+            # Looked like a scanned PDF — try OCR on it
+            text = ocr_pdf_bytes(data)
+            if len(text) >= MIN_OCR_CHARS:
+                return {"text": text, "method": "ocr", "needs_review": True}
+        else:
+            text = ocr_image_bytes(data)
+            if len(text) >= MIN_OCR_CHARS:
+                return {"text": text, "method": "ocr", "needs_review": True}
+    except pytesseract.TesseractNotFoundError:
+        text = ""
 
     # OCR gave too little (handwriting, low-quality scan) — try vision once
     if vision_fallback_fn is not None:
