@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Continuum AI — Endless Conversations</title>
+  <link rel="stylesheet" href="/static/landing.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Inline specific UI mocks for storytelling */
+    .mock-message {
+      display: flex; gap: 12px; margin-bottom: 16px;
+    }
+    .mock-avatar {
+      width: 32px; height: 32px; border-radius: 50%; background: var(--bg-secondary);
+      display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+    .mock-content { flex: 1; }
+    .mock-text { background: var(--bg-card); padding: 12px; border-radius: 12px; border: 1px solid var(--border); font-size: 14px; line-height: 1.5; color: var(--text); }
+    .mock-text.user { background: var(--accent); color: #fff; border: none; }
+    
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    }
+    .status-alert { background: rgba(192, 67, 46, 0.1); color: var(--danger); }
+    .status-success { background: rgba(52, 211, 153, 0.1); color: #059669; }
+    
+    /* Animation for the fallback sequence */
+    .animated-sequence .seq-item { opacity: 0; animation: seqFade 6s infinite; }
+    .animated-sequence .seq-1 { animation-delay: 0s; }
+    .animated-sequence .seq-2 { animation-delay: 2s; }
+    .animated-sequence .seq-3 { animation-delay: 4s; }
+    
+    @keyframes seqFade {
+      0%, 10% { opacity: 0; transform: translateY(10px); }
+      15%, 85% { opacity: 1; transform: translateY(0); }
+      90%, 100% { opacity: 0; transform: translateY(-10px); }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/" class="nav-logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Continuum AI
+    </a>
+    <div>
+      <a href="/app" class="btn btn-primary">Launch App</a>
+    </div>
+  </nav>
+
+  <main>
+    <!-- HERO SECTION -->
+    <section class="hero container">
+      <div class="hero-grid">
+        <div class="hero-content">
+          <h1 class="reveal">Endless AI.<br><span>Boundless Context.</span></h1>
+          <p class="reveal delay-1">When one AI provider reaches its limit, the experience doesn't stop. Bring your own key, leverage intelligent fallback, and keep the conversation going.</p>
+          <div class="reveal delay-2">
+            <a href="/app" class="btn btn-primary">Start Chatting</a>
+          </div>
+        </div>
+        
+        <!-- Authentic Product UI Mock -->
+        <div class="ui-window reveal delay-3">
+          <div class="ui-header">
+            Continuum Assistant
+          </div>
+          <div class="ui-body">
+            <div class="chat-bubble user">Can you analyze the architecture document I uploaded?</div>
+            <div class="chat-bubble ai delay-1">Certainly. Based on the document, the architecture utilizes a hybrid approach...</div>
+            <div class="system-msg delay-2">Switched to Gemini due to Groq rate limit</div>
+            <div class="chat-bubble ai delay-3">...allowing for seamless fallback without losing context.</div>
+          </div>
+          <div class="ui-input">
+            <div class="fake-input"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STORYTELLING: The Continuity Engine -->
+    <section class="container" style="padding-top: 40px;">
+      <h2 class="section-title reveal">The AI that refuses to stop.</h2>
+      <p class="section-subtitle reveal delay-1">Traditional AI tools lock you out when you hit a usage cap. Continuum AI is built differently. We combine a shared pool with a BYOK (Bring Your Own Key) architecture so you never lose your context.</p>
+
+      <div class="flow-container">
+        
+        <!-- Step 1 -->
+        <div class="flow-step reveal">
+          <div class="flow-text">
+            <h3>1. The Limit is Reached</h3>
+            <p>You're deep in a complex brainstorming session, and the shared API pool hits its daily quota. Instead of a frustrating error screen destroying your workflow, Continuum gently pauses.</p>
+          </div>
+          <div class="flow-visual">
+            <div class="mock-message">
+              <div class="mock-content">
+                <div class="status-badge status-alert mb-2">Quota Exceeded</div>
+                <div class="mock-text" style="border-color: var(--danger);">The free pool limit has been reached for today.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="flow-step reveal">
+          <div class="flow-text">
+            <h3>2. Bring Your Own Key</h3>
+            <p>Insert your personal API key directly into the settings. Your key is AES-256 encrypted on the server. You are instantly upgraded to unlimited, private access.</p>
+          </div>
+          <div class="flow-visual">
+             <div style="background: var(--bg); padding: 20px; border-radius: 12px; width: 100%; border: 1px solid var(--border);">
+               <div style="font-size: 14px; margin-bottom: 8px; font-weight: 500;">Add API Key</div>
+               <div style="display: flex; gap: 10px;">
+                 <div style="flex: 1; height: 36px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px;"></div>
+                 <div class="btn btn-primary" style="padding: 0 16px; height: 36px;">Save</div>
+               </div>
+               <div style="font-size: 12px; color: var(--text-muted); margin-top: 12px;">🔒 Encrypted with AES-256 (Fernet)</div>
+             </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="flow-step reveal">
+          <div class="flow-text">
+            <h3>3. The Conversation Continues</h3>
+            <p>You return to your chat. No new threads. No copy-pasting previous context. The AI picks up the conversation exactly where it left off.</p>
+          </div>
+          <div class="flow-visual">
+            <div class="mock-message">
+              <div class="mock-content">
+                <div class="status-badge status-success mb-2">Key Validated</div>
+                <div class="mock-text" style="border-color: #34d399;">As I was saying before, the hybrid architecture...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- FEATURES GRID -->
+    <section class="container">
+      <h2 class="section-title reveal">More than just chat.</h2>
+      <p class="section-subtitle reveal delay-1">Continuum AI is a complete intelligence workspace.</p>
+      
+      <div class="features-grid">
+        <div class="feature-card reveal">
+          <div class="feature-icon">📚</div>
+          <h3>Document Intelligence</h3>
+          <p>Upload PDFs and text files. Our native RAG (Retrieval-Augmented Generation) system splits, embeds, and searches your documents to provide precise, cited answers.</p>
+        </div>
+        
+        <div class="feature-card reveal delay-1">
+          <div class="feature-icon">👁️</div>
+          <h3>Vision & OCR</h3>
+          <p>Upload images. Continuum seamlessly uses Tesseract OCR or falls back to Gemini Vision API to extract text and analyze visual content instantly.</p>
+        </div>
+        
+        <div class="feature-card reveal delay-2">
+          <div class="feature-icon">🔄</div>
+          <h3>Multi-Provider Routing</h3>
+          <p>Behind the scenes, Continuum talks to Groq, Gemini, and OpenRouter. If one API is rate-limited, it automatically routes your prompt to the next available provider.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section reveal">
+      <h2 style="font-size: 36px; margin-bottom: 20px;">Ready to never lose context again?</h2>
+      <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 30px auto; line-height: 1.6;">Experience the personal AI assistant that adapts to usage limits instead of crashing.</p>
+      <a href="/app" class="btn btn-primary" style="font-size: 18px; padding: 16px 32px;">Launch Continuum AI</a>
+    </section>
+
+  </main>
+
+  <script src="/static/landing.js"></script>
+</body>
+</html>

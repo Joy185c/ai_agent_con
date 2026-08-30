@@ -67,8 +67,15 @@ if os.path.isdir(_FRONTEND):
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
-async def serve_index():
-    path = os.path.join(_FRONTEND, "index.html")
+async def serve_landing():
+    path = os.path.join(_FRONTEND, "landing.html")
+    if os.path.exists(path):
+        return HTMLResponse(open(path, encoding="utf-8").read())
+    return HTMLResponse("<h3>Landing page not found</h3>", status_code=404)
+
+@app.get("/app", response_class=HTMLResponse, include_in_schema=False)
+async def serve_app():
+    path = os.path.join(_FRONTEND, "app.html")
     if os.path.exists(path):
         return HTMLResponse(open(path, encoding="utf-8").read())
     return HTMLResponse("<h3>Frontend not found</h3>", status_code=404)
