@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Admin — Continuum AI</title>
+  <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -577,9 +578,7 @@ a:hover{text-decoration:underline;}
 <div id="auth-gate">
   <div id="auth-box">
     <div class="auth-logo">
-      <div class="auth-logo-icon">
-        <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M2 17l10 5 10-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12l10 5 10-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
+      <img src="/static/logo.svg" class="auth-logo-icon" style="background:none;box-shadow:0 8px 20px rgba(214,123,90,0.4);">
       <div>
         <div class="auth-logo-name">Continuum AI</div>
         <div class="auth-logo-sub">Admin Control Panel</div>
@@ -603,9 +602,7 @@ a:hover{text-decoration:underline;}
   <!-- SIDEBAR -->
   <aside id="sidebar">
     <div class="sb-logo">
-      <div class="sb-logo-icon">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
+      <img src="/static/logo.svg" class="sb-logo-icon" style="background:none;box-shadow:0 4px 12px rgba(214,123,90,0.4);">
       <div class="sb-logo-name">Continuum AI</div>
       <div class="sb-logo-badge">Admin</div>
     </div>
@@ -1018,7 +1015,7 @@ a:hover{text-decoration:underline;}
 <div id="toast"></div>
 
 <script>
-const B = "https://ai-agent-con.onrender.com";
+const B = "";
 const PROV_DEFAULTS = {
   groq:       {model:'qwen/qwen3.6-27b',rpm:30,rpd:1000},
   gemini:     {model:'gemini-3.6-flash',rpm:15,rpd:1500},

@@ -6,25 +6,158 @@ Kept deliberately simple (raw sqlite3, no ORM) — this table is small
 yet. Swap to Postgres later if it ever needs to move off a single file.
 """
 
-import sqlite3
+import os
+import pg8000.dbapi as pg8000
+import urllib.parse
 from contextlib import contextmanager
 from datetime import datetime, timezone
+import queue
 from typing import Optional
 
 import crypto
 
-DB_PATH = "key_pool.db"
+DB_POOL = None
 
+class SimplePool:
+    def __init__(self, url, size=5):
+        self.url = url
+        self.size = size
+        # We use a LifoQueue so we reuse the most recently used connections first (less likely to time out)
+        self.pool = queue.LifoQueue(maxsize=size)
+        parsed = urllib.parse.urlparse(url)
+        self.conn_kwargs = {
+            'user': parsed.username,
+            'password': urllib.parse.unquote(parsed.password or ""),
+            'host': parsed.hostname,
+            'port': parsed.port or 5432,
+            'database': parsed.path.lstrip('/'),
+            'timeout': 15.0
+        }
+        for _ in range(size):
+            try:
+                self.pool.put_nowait(self._create_conn())
+            except Exception:
+                pass
+
+    def _create_conn(self):
+        return pg8000.connect(**self.conn_kwargs)
+
+    def getconn(self):
+        for _ in range(self.size):
+            try:
+                conn = self.pool.get_nowait()
+                # Check if the connection is alive
+                try:
+                    cur = conn.cursor()
+                    cur.execute("SELECT 1")
+                    return conn
+                except Exception:
+                    # Connection is dead
+                    pass
+            except queue.Empty:
+                break
+        
+        # If no valid connections were in the pool, make a new one
+        return self._create_conn()
+
+    def putconn(self, conn):
+        try:
+            self.pool.put_nowait(conn)
+        except queue.Full:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+def get_db_pool():
+    global DB_POOL
+    if DB_POOL is None:
+        db_url = os.environ.get("SUPABASE_DB_URL")
+        if not db_url:
+            raise ValueError("SUPABASE_DB_URL not set in environment")
+        DB_POOL = SimplePool(db_url, size=10)
+    return DB_POOL
+
+class MockCursor:
+    def __init__(self, rows, lastrowid):
+        self.rows = rows
+        self.lastrowid = lastrowid
+        self.idx = 0
+        self.rowcount = len(rows)  # for rowcount tracking
+    def fetchone(self):
+        if self.idx < len(self.rows):
+            r = self.rows[self.idx]
+            self.idx += 1
+            return r
+        return None
+    def fetchall(self):
+        r = self.rows[self.idx:]
+        self.idx = len(self.rows)
+        return r
+
+class DBConnWrapper:
+    def __init__(self, conn):
+        self.conn = conn
+
+    def execute(self, sql, params=None):
+        sql = sql.replace("?", "%s")
+        # Handle SQLite INSERT OR REPLACE
+        if "INSERT OR REPLACE INTO system_settings" in sql:
+            sql = "INSERT INTO system_settings (key, value, updated_at) VALUES (%s, %s, %s) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = EXCLUDED.updated_at"
+
+        is_insert = sql.strip().upper().startswith("INSERT")
+        needs_returning = False
+        
+        if is_insert and "ON CONFLICT" not in sql:
+            lower_sql = sql.lower()
+            if any(t in lower_sql for t in ["into api_keys", "into users", "into conversations", "into messages", "into user_keys", "into audit_log", "into request_stats", "into about_sections"]):
+                needs_returning = True
+                
+        if needs_returning and "RETURNING id" not in sql:
+            sql = sql.strip()
+            if sql.endswith(";"):
+                sql = sql[:-1]
+            sql += " RETURNING id"
+            
+        cur = self.conn.cursor()
+        if params is None:
+            params = ()
+        cur.execute(sql, params)
+        
+        lastrowid = None
+        rows = []
+        if cur.description:
+            columns = [col[0] for col in cur.description]
+            rows = [dict(zip(columns, row)) for row in cur.fetchall()]
+            
+        if needs_returning and rows:
+            lastrowid = rows[0]["id"]
+            
+        mock = MockCursor(rows, lastrowid)
+        mock.rowcount = cur.rowcount
+        return mock
+
+    def executemany(self, sql, params_list):
+        sql = sql.replace("?", "%s")
+        cur = self.conn.cursor()
+        cur.executemany(sql, params_list)
+        return MockCursor([], None)
+
+    def commit(self):
+        self.conn.commit()
 
 @contextmanager
 def get_conn():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+    p = get_db_pool()
+    conn = p.getconn()
     try:
-        yield conn
+        yield DBConnWrapper(conn)
         conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
     finally:
-        conn.close()
+        p.putconn(conn)
 
 
 def init_db():
@@ -32,7 +165,7 @@ def init_db():
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS api_keys (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 provider TEXT NOT NULL,
                 model TEXT NOT NULL,
                 key_encrypted TEXT NOT NULL,
@@ -50,7 +183,7 @@ def init_db():
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 email TEXT UNIQUE NOT NULL,
                 password_hash TEXT NOT NULL,
                 created_at TEXT NOT NULL
@@ -60,7 +193,7 @@ def init_db():
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS conversations (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 user_id INTEGER NOT NULL,
                 title TEXT NOT NULL DEFAULT 'New chat',
                 created_at TEXT NOT NULL,
@@ -71,7 +204,7 @@ def init_db():
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS messages (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 conversation_id INTEGER NOT NULL,
                 role TEXT NOT NULL,
                 content TEXT NOT NULL,
@@ -83,7 +216,7 @@ def init_db():
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS user_keys (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 user_id INTEGER NOT NULL,
                 provider TEXT NOT NULL,
                 model TEXT NOT NULL,
@@ -122,7 +255,7 @@ def init_db():
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS audit_log (
-                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                id          SERIAL PRIMARY KEY,
                 action      TEXT NOT NULL,
                 target_type TEXT,
                 target_id   TEXT,
@@ -134,7 +267,7 @@ def init_db():
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS request_stats (
-                id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                id       SERIAL PRIMARY KEY,
                 date     TEXT NOT NULL,
                 hour     INTEGER NOT NULL DEFAULT 0,
                 provider TEXT NOT NULL DEFAULT 'unknown',
@@ -161,7 +294,7 @@ def init_db():
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS about_sections (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 section_type TEXT NOT NULL,
                 title TEXT,
                 subtitle TEXT,
@@ -703,7 +836,7 @@ def increment_request_stat(provider: Optional[str], category: str, status: str):
                     "(date, hour, provider, category, status, count) VALUES (?, ?, ?, ?, ?, 1)",
                     (date, hour, prov, category, status),
                 )
-            except sqlite3.IntegrityError:
+            except psycopg2.IntegrityError:
                 pass  # concurrent insert — ignore
 
 

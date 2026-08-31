@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 <title>Personal AI Agent</title>
+  <link rel="icon" type="image/svg+xml" href="/static/logo.svg">
 <style>
   :root {
     --bg: #F4F1EA;
@@ -498,7 +499,7 @@
     <div id="overlay"></div>
 
     <aside id="sidebar">
-      <div class="brand"><span class="dot"></span> Personal Agent</div>
+      <div class="brand"><img src="/static/logo.svg" style="width:18px;height:18px;border-radius:5px;box-shadow:0 2px 5px rgba(214,123,90,0.5);"> Personal Agent</div>
       <button id="new-chat-btn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
         New chat
@@ -606,7 +607,7 @@
   </div>
 
 <script>
-  const BACKEND_URL = "https://ai-agent-con.onrender.com";
+  const BACKEND_URL = "";
   window.BACKEND_URL = BACKEND_URL; // Export to window for modals.js
   const PROVIDER_LABELS = { groq: "Groq", gemini: "Gemini", openrouter: "OpenRouter" };
   window.PROVIDER_LABELS = PROVIDER_LABELS; // Export to window for modals.js

@@ -18,7 +18,7 @@ from typing import AsyncGenerator, List, Dict
 
 import httpx
 
-TIMEOUT = httpx.Timeout(60.0, connect=10.0)
+TIMEOUT = httpx.Timeout(120.0, connect=30.0)
 
 
 # ---------------------------------------------------------------------------
